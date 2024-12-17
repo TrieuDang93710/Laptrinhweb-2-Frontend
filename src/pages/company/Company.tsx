@@ -1,9 +1,32 @@
 import { Link, useParams } from 'react-router';
 import CompanyDetail from './CompanyDetail';
+import { useEffect, useState } from 'react';
+import UserService from '../../api/services/UserService';
+import CompanyService from '../../api/services/CompanyService';
+import CompanyInterface from '../../interface/company/companyResponse';
 
 const CompanyPage = () => {
   const params = useParams<{ id: string }>();
   const isDetailCompany = params.id;
+  const [companyResponse, setCompanyResponse] = useState<CompanyInterface[]>();
+
+  useEffect(() => {
+    fetchCompany();
+  }, []);
+
+  const fetchCompany = () => {
+    try {
+      if (UserService.isAuthenticated() && localStorage.getItem('token')) {
+        const token: string | null = localStorage.getItem('token');
+        const response = CompanyService.getAllCompanies(token!);
+        response.then((obj) => {
+          setCompanyResponse(obj);
+        });
+      }
+    } catch (error) {
+      throw new Error(error);
+    }
+  };
   return (
     <>
       {!isDetailCompany ? (
@@ -18,15 +41,15 @@ const CompanyPage = () => {
                 <th className='sticky top-0 bg-blue-500 w-1/4 truncate py-2 border border-blue-500'>Action</th>
               </thead>
               <tbody className='md:w-full bg-slate-100 text-slate-800'>
-                {Array.from({ length: 10 }, (_, index) => (
-                  <tr key={index} className='w-full text-center'>
-                    <td className='py-2 border border-blue-500'>1</td>
-                    <td className='py-2 border border-blue-500'>FPT Software</td>
-                    <td className='py-2 border border-blue-500'>5</td>
+                {companyResponse?.map((item) => (
+                  <tr key={item.id} className='w-full text-center'>
+                    <td className='py-2 border border-blue-500'>{item.id}</td>
+                    <td className='py-2 border border-blue-500'>{item.companyName}</td>
+                    <td className='py-2 border border-blue-500'>{item.users.length}</td>
                     <td className='py-2 border border-blue-500 flex items-center justify-center gap-3'>
                       <Link
                         className='bg-green-500 text-xs text-slate-100 font-bold px-2 py-1 rounded-md'
-                        to={`/company/${index + 1}`}
+                        to={`/company/${item.id}`}
                       >
                         View detail
                       </Link>
