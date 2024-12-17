@@ -1,13 +1,21 @@
 import CommonInput from '../../../components/atoms/Input';
 import { handleBlurChecking } from '../../../utils/helper';
 import useCombinedState from '../../../hooks/useCombinedState';
-import { BaseSyntheticEvent, useState } from 'react';
-import { Link } from 'react-router';
-import { FacebookOutlined, GooglePlusOutlined } from '@ant-design/icons';
+import { BaseSyntheticEvent, useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router';
+import { CheckCircleFilled, FacebookOutlined, GooglePlusOutlined } from '@ant-design/icons';
 import { companies, roles } from '../../../faker/company';
+import UserService from '../../../api/services/UserService';
+import Notification from '../../../components/Notification';
+import CompanyInterface from '../../../interface/company/companyResponse';
+import CompanyService from '../../../api/services/CompanyService';
 
 const SignUp = () => {
   const [passHidden, setPassHidden] = useState<boolean>(false);
+  const [notification, setNotification] = useState<boolean>(false);
+  const [companyResponse, setCompanyResponse] = useState<CompanyInterface[]>();
+  const navigate = useNavigate();
+  const [error, setError] = useState<string>('');
 
   const [state, setField] = useCombinedState({
     email: '',
@@ -26,17 +34,61 @@ const SignUp = () => {
     roleError: ''
   });
 
-  const loginSubmit = (e: BaseSyntheticEvent<Event, EventTarget & HTMLFormElement>) => {
+  useEffect(() => {
+    fetchCompany();
+  }, []);
+
+  const fetchCompany = () => {
+    try {
+      const response = CompanyService.getAllCompanies();
+      response.then((obj) => {
+        setCompanyResponse(obj);
+        console.log('companyResponse: ', companyResponse);
+      });
+    } catch (error) {
+      throw new Error(error);
+    }
+  };
+
+  const registerSubmit = async (e: BaseSyntheticEvent<Event, EventTarget & HTMLFormElement>) => {
     e.preventDefault();
     const formValues = Object.fromEntries(new FormData(e.target));
-    console.log('Form values: ', formValues);
+    console.log('formValues: ', formValues);
+    const userData = {
+      firstName: formValues.firstName.toString(),
+      lastName: formValues.lastName.toString(),
+      email: formValues.email.toString(),
+      password: formValues.password.toString(),
+      company: Number(formValues.company.toString()),
+      authorities: [formValues.role.toString()]
+    };
+    console.log('userData: ', userData);
+    try {
+      if (formValues.passConfirm.toString() === formValues.password.toString()) {
+        const response = await UserService.register(userData);
+        console.log('response: ', response);
+        setNotification(true);
+        navigate('/auth/sign-in');
+        return response;
+      } else {
+        alert('Confirm password is not match with password, please type password again');
+        console.log('Confirm password: \n', formValues.passConfirm.toString());
+        console.log('Password: \n', formValues.password.toString());
+      }
+    } catch (error) {
+      console.log(error);
+      setError(error);
+      setTimeout(() => {
+        setError('');
+      }, 5000);
+    }
   };
 
   return (
     <div className='w-full h-full pt-20 px-2 pb-3 flex flex-col items-center justify-center'>
       <div className='md:w-1/3 sm:w-1/2 w-3/4 border rounded-md shadow-md shadow-slate-500 py-3 px-2 flex flex-col items-center justify-around'>
         <h2 className='text-2xl font-bold'>Sign Up</h2>
-        <form onSubmit={loginSubmit} className='w-full'>
+        <form onSubmit={registerSubmit} className='w-full'>
           <CommonInput
             onblur={() => handleBlurChecking('firstNameError', state.firstName, setField)}
             inputValue={state.firstName}
@@ -49,7 +101,6 @@ const SignUp = () => {
             label_title='First Name'
             placeholder='Please, enter first name'
             labelTileClassName='text-white'
-            inputClassName='border-none bg-[#ffffff1d] text-slate-200 placeholder:text-slate-200 dark:placeholder:text-slate-200 outline-slate-800 focus:outline-green-500 focus:bg-transparent'
           />
           <CommonInput
             onblur={() => handleBlurChecking('lastNameError', state.lastName, setField)}
@@ -63,7 +114,6 @@ const SignUp = () => {
             label_title='Last Name'
             placeholder='Please, enter last name'
             labelTileClassName='text-white'
-            inputClassName='border-none bg-[#ffffff1d] text-slate-200 placeholder:text-slate-200 dark:placeholder:text-slate-200 outline-slate-800 focus:outline-green-500 focus:bg-transparent'
           />
           <CommonInput
             onblur={() => handleBlurChecking('emailError', state.email, setField)}
@@ -77,7 +127,6 @@ const SignUp = () => {
             label_title='Email'
             placeholder='Please, enter email'
             labelTileClassName='text-white'
-            inputClassName='border-none bg-[#ffffff1d] text-slate-200 placeholder:text-slate-200 dark:placeholder:text-slate-200 outline-slate-800 focus:outline-green-500 focus:bg-transparent'
           />
           <CommonInput
             onblur={() => handleBlurChecking('passwordError', state.password, setField)}
@@ -94,7 +143,6 @@ const SignUp = () => {
             label_title='Password'
             placeholder='Please, enter password'
             labelTileClassName='text-white'
-            inputClassName='border-none bg-[#ffffff1d] text-slate-200 placeholder:text-slate-200 dark:placeholder:text-slate-200 outline-slate-800 focus:outline-green-500 focus:bg-transparent'
           />
           <CommonInput
             onblur={() => handleBlurChecking('passConfirmError', state.passConfirm, setField)}
@@ -111,7 +159,6 @@ const SignUp = () => {
             label_title='passConfirm'
             placeholder='Please, enter password confirm'
             labelTileClassName='text-white'
-            inputClassName='border-none bg-[#ffffff1d] text-slate-200 placeholder:text-slate-200 dark:placeholder:text-slate-200 outline-slate-800 focus:outline-green-500 focus:bg-transparent'
           />
           <CommonInput
             onblur={() => handleBlurChecking('companyError', state.company, setField)}
@@ -121,7 +168,7 @@ const SignUp = () => {
             field='company'
             error={state.companyError}
             hidden={false}
-            optionList={companies}
+            optionCompany={companyResponse}
             nameSelect='company'
             nameInput={'company'}
             label_title='Company'
@@ -162,6 +209,14 @@ const SignUp = () => {
           </Link>
         </span>
       </div>
+      {notification && (
+        <Notification
+          icon={<CheckCircleFilled className='text-4xl text-green-600' />}
+          message='Sign in successfully!'
+          description='Completed!!!'
+          notification={notification}
+        />
+      )}
     </div>
   );
 };

@@ -1,15 +1,54 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ModalCommon from '../../../components/atoms/Modal';
 import Decentralization from '../../../components/Decentralization';
+import UserInterface from '../../../interface/user/userResponse';
+import UserService from '../../../api/services/UserService';
+import { useNavigate } from 'react-router';
 
 const UserManager = () => {
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [userAllResponse, setAllUserResponse] = useState<UserInterface[]>();
+  const [userAllFiltered, setUserAllFiltered] = useState<UserInterface[]>();
+  const navigate = useNavigate();
 
   const handleOpenModal = (userId: number) => {
-    setOpenModal(!openModal)
+    setOpenModal(!openModal);
     setSelectedUserId(userId);
   };
+
+  useEffect(() => {
+    fetchAllUserData();
+  }, []);
+
+  const fetchAllUserData = () => {
+    if (UserService.isAuthenticated() && localStorage.getItem('token')) {
+      const token = localStorage.getItem('token');
+      const response = UserService.getAllUsers(token!);
+      response.then((data) => {
+        setAllUserResponse(data);
+        console.log('data: ', data);
+        const userFiltered = data?.filter(
+          (user: UserInterface) => user.authorities.length === 1 && user.authorities[0].authority === 'ROLE_USER'
+        );
+        setUserAllFiltered(userFiltered);
+      });
+    }
+  };
+
+  const deleteUserHandler = async (userId: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (UserService.isAuthenticated() && UserService.isAdmin() && token) {
+        const response = await UserService.deleteUser(token, userId);
+        navigate('/admin/user-manager');
+        return response;
+      }
+    } catch (error) {
+      throw new Error(error);
+    }
+  };
+
   return (
     <div className='relative w-full min-h-screen pt-24 flex flex-col items-center justify-start'>
       <h2 className='text-3xl font-bold py-3'>User Manager</h2>
@@ -24,21 +63,32 @@ const UserManager = () => {
             <th className='sticky top-0 bg-blue-500 w-1/4 truncate py-2 border border-blue-500'>Action</th>
           </thead>
           <tbody className='md:w-full bg-slate-100 text-slate-800'>
-            {Array.from({ length: 10 }, (_, index) => (
-              <tr key={index} className='w-full text-center truncate'>
-                <td className='py-2 border border-blue-500 truncate px-2'>1</td>
-                <td className='py-2 border border-blue-500 truncate px-2'>Dang</td>
-                <td className='py-2 border border-blue-500 truncate px-2'>Trieu</td>
-                <td className='py-2 border border-blue-500 truncate px-2'>dangbinhtrieu123@gmail.com</td>
-                <td className='py-2 border border-blue-500 truncate px-2'>ROLE_USER</td>
+            {userAllFiltered?.map((item) => (
+              <tr key={item.id} className='w-full text-center truncate'>
+                <td className='py-2 border border-blue-500 truncate px-2'>{item.id}</td>
+                <td className='py-2 border border-blue-500 truncate px-2'>{item.firstName}</td>
+                <td className='py-2 border border-blue-500 truncate px-2'>{item.lastName}</td>
+                <td className='py-2 border border-blue-500 truncate px-2'>{item.email}</td>
+                <td className='py-2 border border-blue-500 truncate px-2'>
+                  <ul>
+                    {item.authorities.map((role) => (
+                      <li key={role.roleId}>{role.authority}</li>
+                    ))}
+                  </ul>
+                </td>
                 <td className='py-2 border border-blue-500 truncate px-2 flex items-center justify-center gap-3'>
                   <button
-                    onClick={() => handleOpenModal(index + 1)}
+                    onClick={() => handleOpenModal(item.id)}
                     className='bg-green-500 text-xs text-slate-100 font-bold px-2 py-1 rounded-md'
                   >
                     role
                   </button>
-                  <button className='bg-red-500 text-xs text-slate-100 font-bold px-2 py-1 rounded-md'>Del</button>
+                  <button
+                    onClick={() => deleteUserHandler(item.id)}
+                    className='bg-red-500 text-xs text-slate-100 font-bold px-2 py-1 rounded-md'
+                  >
+                    Del
+                  </button>
                 </td>
               </tr>
             ))}

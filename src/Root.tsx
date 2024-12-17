@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import HomePage from './pages/home/HomePage';
 import { Link } from 'react-router';
 import './components/Header/index.css';
+import UserService from './api/services/UserService';
 
 const items = [
   {
@@ -24,18 +25,26 @@ const items = [
   }
 ];
 
+const logoutHandler = (value: number) => {
+  if (value === 3) {
+    // items.map((item) => {
+    //   if (item.title.toLowerCase().toString() === items[value].title.toLocaleLowerCase().toString()) {
+    //     UserService.logout();
+    //   }
+    // });
+    UserService.logout();
+  }
+};
+
 const menuItem = items.map((item) => (
   <li key={item.id} className='li_menu bg-slate-200 w-full'>
-    <Link to={`${item.url_path}`}>{item.title}</Link>
+    <Link onClick={() => logoutHandler(item.id)} to={`${item.url_path}`}>
+      {item.title}
+    </Link>
   </li>
 ));
 
-type Account = 'admin' | 'user';
-interface RootLayoutProps {
-  account: Account;
-}
-
-const RootLayout = ({ account }: RootLayoutProps) => {
+const RootLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -50,10 +59,8 @@ const RootLayout = ({ account }: RootLayoutProps) => {
   // const role = 'admin';
   let layout;
 
-  account = 'admin'
-
-  switch (account) {
-    case 'admin':
+  switch (localStorage.getItem('role')) {
+    case 'ROLE_ADMIN':
       layout = (
         <div className='w-full flex justify-between items-start'>
           <div className='w-1/4 min-h-screen flex flex-col justify-start items-center bg-slate-50 shadow-md shadow-slate-700 gap-4 px-4'>
@@ -69,7 +76,7 @@ const RootLayout = ({ account }: RootLayoutProps) => {
         </div>
       );
       break;
-    case 'user':
+    case 'ROLE_USER':
       layout = <>{location.pathname !== '/' ? <Outlet /> : <HomePage />}</>;
       break;
 
@@ -81,33 +88,7 @@ const RootLayout = ({ account }: RootLayoutProps) => {
   return (
     <main className='relative w-full min-h-screen flex flex-col items-center justify-between'>
       <HeaderCommon showNavModal={showNavModal} setShowNavModal={setShowNavModal} />
-      {/* {role === 'admin' ? (
-        <div className='w-full flex justify-between items-start'>
-          <div className='w-1/4 min-h-screen flex flex-col justify-start items-center bg-slate-50 shadow-md shadow-slate-700 gap-4 px-4'>
-            <div className={'relative pt-28 w-full flex flex-col justify-center items-center gap-1 cursor-pointer'}>
-              <p className='text-[16px] text-slate-900 font-bold'>Trieu Dang</p>
-              <span className='text-xs text-slate-800 font-medium'>
-                <Link to={'/user-profile'}>dangbinhtrieu123@gmail.com</Link>
-              </span>
-            </div>
-            <ul className='flex w-full md:flex-col justify-start items-start gap-4 py-4'>{menuItem}</ul>
-          </div>
-          {location.pathname !== '/' ? <Outlet /> : <HomePage />}
-        </div>
-      ) : (
-        <>{location.pathname !== '/' ? <Outlet /> : <HomePage />}</>
-      )} */}
       {layout}
-
-      {/* {showNavModal ? (
-        <div className='hidden absolute z-10 top-16 right-10 md:w-[10%] bg-slate-300 py-4 px-2 rounded-md flex-col justify-center items-start gap-1 cursor-pointer'>
-          <p className='text-[16px] text-slate-800 font-bold'>
-            <Link to={'/profile'}>Edit profile</Link>
-          </p>
-          <p className='text-[16px] text-slate-800 font-bold'>Dark/Mode</p>
-        </div>
-      ) : null} */}
-
       <FooterCommon />
     </main>
   );

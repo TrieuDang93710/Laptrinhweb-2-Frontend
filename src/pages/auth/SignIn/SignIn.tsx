@@ -2,11 +2,17 @@ import CommonInput from '../../../components/atoms/Input';
 import { handleBlurChecking } from '../../../utils/helper';
 import useCombinedState from '../../../hooks/useCombinedState';
 import { BaseSyntheticEvent, useState } from 'react';
-import { Link } from 'react-router';
-import { FacebookOutlined, GooglePlusOutlined } from '@ant-design/icons';
+import { Link, useNavigate } from 'react-router';
+import { CheckCircleFilled, CloseCircleFilled, FacebookOutlined, GooglePlusOutlined } from '@ant-design/icons';
+import UserService from '../../../api/services/UserService';
+import Notification from '../../../components/Notification';
 
 const SignIn = () => {
+  const [notification, setNotification] = useState<boolean>(false);
+  const [notificationError, setNotificationError] = useState<boolean>(false);
   const [passHidden, setPassHidden] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+  const navigate = useNavigate();
 
   const [state, setField] = useCombinedState({
     email: '',
@@ -15,14 +21,41 @@ const SignIn = () => {
     passwordError: ''
   });
 
-  const loginSubmit = (e: BaseSyntheticEvent<Event, EventTarget & HTMLFormElement>) => {
+  const loginSubmit = async (e: BaseSyntheticEvent<Event, EventTarget & HTMLFormElement>) => {
     e.preventDefault();
     const formValues = Object.fromEntries(new FormData(e.target));
-    console.log('Form values: ', formValues);
+    console.log('Form values: ', formValues.email);
+    try {
+      const response = await UserService.login(formValues.email.toString(), formValues.password.toString());
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('role', response.data.role);
+        localStorage.setItem('email', response.data.userLoginDto.email);
+        setNotification(true);
+        setInterval(() => {
+          setNotification(false);
+        }, 5000);
+        navigate('/');
+      } else {
+        setError(response.error);
+        setNotification(true);
+        setInterval(() => {
+          setNotification(false);
+        }, 10000);
+        navigate('/auth/sign-in');
+      }
+    } catch (err) {
+      console.log(error);
+      setError(err);
+      setTimeout(() => {
+        setError('');
+      }, 5000);
+      navigate('/auth/sign-in');
+    }
   };
 
   return (
-    <div className='w-full h-full pt-20 px-2 pb-3 flex flex-col items-center justify-center'>
+    <div className='relative w-full h-full pt-20 px-2 pb-3 flex flex-col items-center justify-center'>
       <div className='md:w-1/3 sm:w-1/2 w-3/4 border rounded-md shadow-md shadow-slate-500 py-3 px-2 flex flex-col items-center justify-around'>
         <h2 className='text-2xl font-bold'>Sign In</h2>
         <form onSubmit={loginSubmit} className='w-full'>
@@ -84,6 +117,23 @@ const SignIn = () => {
           </Link>
         </span>
       </div>
+
+      {notification && (
+        <Notification
+          icon={<CheckCircleFilled className='text-4xl text-green-600' />}
+          message='Sign in successfully!'
+          description='Completed!!!'
+          notification={notification}
+        />
+      )}
+      {notificationError && (
+        <Notification
+          icon={<CloseCircleFilled className='text-4xl text-red-600' />}
+          message='Sign in fail!'
+          description='Not completed!!!'
+          notification={notification}
+        />
+      )}
     </div>
   );
 };

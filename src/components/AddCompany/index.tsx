@@ -1,18 +1,42 @@
-import { BaseSyntheticEvent } from 'react';
+import { BaseSyntheticEvent, useState } from 'react';
 import useCombinedState from '../../hooks/useCombinedState';
 import CommonInput from '../atoms/Input';
 import { handleBlurChecking } from '../../utils/helper';
+import { useNavigate } from 'react-router';
+import UserService from '../../api/services/UserService';
+import CompanyService from '../../api/services/CompanyService';
+import { CompanyCreateDto } from '../../interface/company/compnayCreateDto';
 
 const AddCompany = () => {
+  const navigate = useNavigate();
+  const [error, setError] = useState<string>('');
   const [state, setField] = useCombinedState({
     company: '',
     companyError: ''
   });
 
-  const submitHandler = (e: BaseSyntheticEvent<Event, EventTarget & HTMLFormElement>) => {
+  const submitHandler = async (e: BaseSyntheticEvent<Event, EventTarget & HTMLFormElement>) => {
     e.preventDefault();
     const formValues = Object.fromEntries(new FormData(e.target));
     console.log('Form values: ', formValues);
+    try {
+      const token = localStorage.getItem('token');
+      const companyData: CompanyCreateDto = {
+        companyName: formValues.company.toString()
+      };
+      console.log('companyData: ', companyData);
+      if (token && UserService.isAuthenticated()) {
+        const response = await CompanyService.create(token, companyData);
+        return response;
+      }
+      navigate('/admin/company-manager');
+    } catch (err) {
+      console.log(error);
+      setError(err);
+      setTimeout(() => {
+        setError('');
+      }, 5000);
+    }
   };
   return (
     <div className='w-1/3 flex flex-col justify-start items-center bg-slate-100 rounded-md shadow-md shadow-slate-600 py-2 px-3'>
