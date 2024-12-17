@@ -2,11 +2,14 @@ import CommonInput from '../../../components/atoms/Input';
 import { handleBlurChecking } from '../../../utils/helper';
 import useCombinedState from '../../../hooks/useCombinedState';
 import { BaseSyntheticEvent, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { FacebookOutlined, GooglePlusOutlined } from '@ant-design/icons';
+import UserService from '../../../api/services/UserService';
 
 const SignIn = () => {
   const [passHidden, setPassHidden] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+  const navigate = useNavigate();
 
   const [state, setField] = useCombinedState({
     email: '',
@@ -15,10 +18,27 @@ const SignIn = () => {
     passwordError: ''
   });
 
-  const loginSubmit = (e: BaseSyntheticEvent<Event, EventTarget & HTMLFormElement>) => {
+  const loginSubmit = async (e: BaseSyntheticEvent<Event, EventTarget & HTMLFormElement>) => {
     e.preventDefault();
     const formValues = Object.fromEntries(new FormData(e.target));
-    console.log('Form values: ', formValues);
+    console.log('Form values: ', formValues.email);
+    try {
+      const response = await UserService.login(formValues.email.toString(), formValues.password.toString());
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('role', response.data.role);
+        localStorage.setItem('email', response.data.userLoginDto.email);
+        navigate('/');
+      } else {
+        setError(response.error);
+      }
+    } catch (err) {
+      console.log(error);
+      setError(err);
+      setTimeout(() => {
+        setError('');
+      }, 5000);
+    }
   };
 
   return (
