@@ -1,13 +1,18 @@
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import ModalCommon from '../../../components/atoms/Modal';
 import AddCompany from '../../../components/AddCompany';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import UpdateCompany from '../../../components/UpdateCompnay';
+import CompanyInterface from '../../../interface/company/companyResponse';
+import CompanyService from '../../../api/services/CompanyService';
+import UserService from '../../../api/services/UserService';
 
 const CompanyManager = () => {
   const [open, setOpen] = useState<boolean>(false);
   const [openUpdModal, setOpenUpdModal] = useState<boolean>(false);
   const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(null);
+  const [companyResponse, setCompanyResponse] = useState<CompanyInterface[]>();
+  const navigate = useNavigate()
 
   const handleOpenModal = () => {
     setOpen(!open);
@@ -18,6 +23,36 @@ const CompanyManager = () => {
     setSelectedCompanyId(companyId);
   };
 
+  useEffect(() => {
+    fetchCompany();
+  }, []);
+
+  const fetchCompany = () => {
+    try {
+      if (UserService.isAuthenticated() && localStorage.getItem('token')) {
+        const response = CompanyService.getAllCompanies();
+        response.then((obj) => {
+          setCompanyResponse(obj);
+        });
+      }
+    } catch (error) {
+      throw new Error(error);
+    }
+  };
+
+  const deleteCompanyHandler = async (companyId: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token && UserService.isAuthenticated()) {
+        await CompanyService.deleteCompany(token, companyId);
+        navigate('/admin/company-manager')
+      }
+    } catch (error) {
+      throw new Error(error);
+    }
+  };
+
+  console.log('companyResponse: ', companyResponse);
   return (
     <div className='relative w-full min-h-screen pt-24 flex flex-col items-center justify-start'>
       <h2 className='text-3xl font-bold py-3'>Company Manager</h2>
@@ -37,19 +72,24 @@ const CompanyManager = () => {
             <th className='sticky top-0 bg-blue-500 w-1/4 truncate py-2 border border-blue-500'>Action</th>
           </thead>
           <tbody className='md:w-full bg-slate-100 text-slate-800'>
-            {Array.from({ length: 10 }, (_, index) => (
-              <tr key={index} className='w-full text-center'>
-                <td className='py-2 border border-blue-500'>1</td>
-                <td className='py-2 border border-blue-500'>FPT Software</td>
-                <td className='py-2 border border-blue-500'>5</td>
+            {companyResponse?.map((item) => (
+              <tr key={item.id} className='w-full text-center'>
+                <td className='py-2 border border-blue-500'>{item.id}</td>
+                <td className='py-2 border border-blue-500'>{item.companyName}</td>
+                <td className='py-2 border border-blue-500'>{item.users.length}</td>
                 <td className='py-2 border border-blue-500 flex items-center justify-center gap-3'>
                   <button
-                    onClick={() => handleOpenUpdModal(index + 1)}
+                    onClick={() => handleOpenUpdModal(item.id)}
                     className='bg-purple-600 text-xs text-slate-100 font-bold px-2 py-1 rounded-md'
                   >
                     Edit
                   </button>
-                  <button className='bg-red-500 text-xs text-slate-100 font-bold px-2 py-1 rounded-md'>Del</button>
+                  <button
+                    onClick={() => deleteCompanyHandler(item.id)}
+                    className='bg-red-500 text-xs text-slate-100 font-bold px-2 py-1 rounded-md'
+                  >
+                    Del
+                  </button>
                 </td>
               </tr>
             ))}

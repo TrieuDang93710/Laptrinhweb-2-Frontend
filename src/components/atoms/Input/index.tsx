@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import SelectionComponent from '../Selection';
 import { EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
+import CompanyInterface from '../../../interface/company/companyResponse';
 
 interface OptionInterface {
   value: string;
@@ -12,7 +13,7 @@ interface CommonInputProps {
   error?: string;
   field: string;
   nameInput?: string;
-  nameSelect?: string
+  nameSelect?: string;
   setField: (field: string, value: string) => void;
   onblur: () => void;
   label_title?: string;
@@ -20,6 +21,7 @@ interface CommonInputProps {
   inputClassName?: string;
   iconPassStyle?: string;
   optionList?: (OptionInterface | undefined)[];
+  optionCompany?: (CompanyInterface | undefined)[];
   hidden?: boolean;
   iconPass?: boolean;
   passHidden?: boolean;
@@ -34,6 +36,7 @@ const CommonInput = ({
   label_title,
   iconPassStyle,
   optionList,
+  optionCompany,
   typeInput,
   setField,
   field,
@@ -51,8 +54,8 @@ const CommonInput = ({
     const selectValue = e.target.value;
     setSelectValue(selectValue);
     setField(field, selectValue);
-    console.log('field: ', field)
-    console.log('selectValue: ', selectValue)
+    console.log('field: ', field);
+    console.log('selectValue: ', selectValue);
   };
 
   return (
@@ -71,9 +74,10 @@ const CommonInput = ({
       >
         {label_title}
       </label>
-      {optionList ? (
+      {optionList || optionCompany ? (
         <SelectionComponent
           optionList={optionList}
+          optionCompany={optionCompany}
           selectValue={selectValue}
           setSelectValue={handlePageSizeChange}
           setField={setField}

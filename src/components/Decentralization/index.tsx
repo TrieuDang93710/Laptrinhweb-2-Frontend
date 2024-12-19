@@ -2,6 +2,7 @@ import { BaseSyntheticEvent } from 'react';
 import useCombinedState from '../../hooks/useCombinedState';
 import CommonInput from '../atoms/Input';
 import { handleBlurChecking } from '../../utils/helper';
+import UserService from '../../api/services/UserService';
 
 interface DecentralizationProps {
   selectedUserId: number | null;
@@ -9,14 +10,26 @@ interface DecentralizationProps {
 
 const Decentralization = ({ selectedUserId }: DecentralizationProps) => {
   const [state, setField] = useCombinedState({
-    company: '',
-    companyError: ''
+    role: '',
+    roleError: ''
   });
 
-  const submitHandler = (e: BaseSyntheticEvent<Event, EventTarget & HTMLFormElement>) => {
+  const submitHandler = async (e: BaseSyntheticEvent<Event, EventTarget & HTMLFormElement>) => {
     e.preventDefault();
     const formValues = Object.fromEntries(new FormData(e.target));
     console.log('Form values: ', formValues);
+    try {
+      const token = localStorage.getItem('token');
+      const decentralizationUser = {
+        authorities: [formValues.role.toString()]
+      };
+      if (UserService.isAuthenticated() && UserService.isAdmin() && token) {
+        const response = await UserService.decentralization(token, decentralizationUser, selectedUserId!);
+        return response;
+      }
+    } catch (error) {
+      throw new Error(error);
+    }
   };
   return (
     <div className='w-1/3 flex flex-col justify-start items-center bg-slate-100 rounded-md shadow-md shadow-slate-600 py-2 px-3'>
@@ -25,17 +38,17 @@ const Decentralization = ({ selectedUserId }: DecentralizationProps) => {
       </div>
       <form className='w-full' onSubmit={submitHandler}>
         <CommonInput
-          onblur={() => handleBlurChecking('companyError', state.company, setField)}
-          inputValue={state.company}
+          onblur={() => handleBlurChecking('roleError', state.role, setField)}
+          inputValue={state.role}
           typeInput='text'
           setField={setField}
-          field='company'
-          error={state.companyError}
+          field='role'
+          error={state.roleError}
           hidden={false}
-          nameSelect='company'
-          nameInput={'company'}
-          label_title='Company'
-          placeholder='Please, enter company'
+          nameSelect='role'
+          nameInput={'role'}
+          label_title='Role'
+          placeholder='Please, enter role'
         />
         <button
           className='w-full py-2 my-2 bg-blue-700 border border-transparent text-slate-50 text-xl font-bold rounded-md shadow-md shadow-slate-600 hover:border-blue-700 hover:bg-blue-600 active:shadow-slate-800'
