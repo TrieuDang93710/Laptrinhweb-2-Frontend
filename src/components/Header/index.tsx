@@ -4,6 +4,7 @@ import { MenuUnfoldOutlined } from '@ant-design/icons';
 import UserService from '../../api/services/UserService';
 import { useEffect, useState } from 'react';
 import UserInterface from '../../interface/user/userResponse';
+import { handleError } from '../../utils/helper';
 
 const items = [
   {
@@ -72,14 +73,15 @@ const HeaderCommon = ({ showNavModal, setShowNavModal }: HeaderCommonProps) => {
         const emailRes: string | null = localStorage.getItem('email');
         const token: string | null = localStorage.getItem('token');
         const response = UserService.getUserByEmail(token!, emailRes!);
-        response.then((obj: any) => {
+        response.then((obj) => {
           console.log(obj.data);
           setUserInformation(obj.data);
           return obj.data;
         });
       }
     } catch (error) {
-      throw new Error(error);
+      const message = handleError(error)
+      throw new Error(message);
     }
   };
 
