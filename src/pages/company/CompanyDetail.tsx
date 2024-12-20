@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import UserService from '../../api/services/UserService';
 import CompanyInterface from '../../interface/company/companyResponse';
 import CompanyService from '../../api/services/CompanyService';
+import { handleError } from '../../utils/helper';
 
 const CompanyDetail = () => {
   const params = useParams<{ id: string }>();
@@ -18,14 +19,15 @@ const CompanyDetail = () => {
       if (UserService.isAuthenticated() && localStorage.getItem('token')) {
         const token: string | null = localStorage.getItem('token');
         const response = CompanyService.getACompany(token!, parseInt(params.id!));
-        response.then((obj: any) => {
+        response.then((obj) => {
           console.log(obj.data);
           setcompanyObject(obj.data);
           return obj.data;
         });
       }
     } catch (error) {
-      throw new Error(error);
+      const message = handleError(error)
+      throw new Error(message);
     }
   };
   return (

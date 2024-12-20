@@ -1,7 +1,7 @@
 import { BaseSyntheticEvent, useEffect, useState } from 'react';
 import useCombinedState from '../../hooks/useCombinedState';
 import CommonInput from '../atoms/Input';
-import { handleBlurChecking } from '../../utils/helper';
+import { handleBlurChecking, handleError } from '../../utils/helper';
 import { useNavigate } from 'react-router';
 import UserService from '../../api/services/UserService';
 import CompanyService from '../../api/services/CompanyService';
@@ -32,13 +32,14 @@ const UpdateCompany = ({ selectedCompanyId }: UpdateCompanyProps) => {
       const token: string | null = localStorage.getItem('token');
       const response = CompanyService.getACompany(token!, selectedCompanyId!);
       console.log(response);
-      response.then((obj: any) => {
+      response.then((obj) => {
         console.log(obj.data);
         setCompanyObject(obj.data);
         return obj.data;
       });
     } catch (error) {
-      throw new Error(error);
+      const message = handleError(error)
+      throw new Error(message);
     }
   };
 
@@ -58,8 +59,10 @@ const UpdateCompany = ({ selectedCompanyId }: UpdateCompanyProps) => {
         return response;
       }
     } catch (err) {
+
+      const message = handleError(err)
+      setError(message!);
       console.log(error);
-      setError(err);
       setTimeout(() => {
         setError('');
       }, 5000);

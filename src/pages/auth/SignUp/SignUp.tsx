@@ -1,10 +1,10 @@
 import CommonInput from '../../../components/atoms/Input';
-import { handleBlurChecking } from '../../../utils/helper';
+import { handleBlurChecking, handleError } from '../../../utils/helper';
 import useCombinedState from '../../../hooks/useCombinedState';
 import { BaseSyntheticEvent, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { CheckCircleFilled, FacebookOutlined, GooglePlusOutlined } from '@ant-design/icons';
-import { companies, roles } from '../../../faker/company';
+import {  roles } from '../../../faker/company';
 import UserService from '../../../api/services/UserService';
 import Notification from '../../../components/Notification';
 import CompanyInterface from '../../../interface/company/companyResponse';
@@ -46,7 +46,8 @@ const SignUp = () => {
         console.log('companyResponse: ', companyResponse);
       });
     } catch (error) {
-      throw new Error(error);
+      const message = handleError(error);
+      throw new Error(message);
     }
   };
 
@@ -75,9 +76,10 @@ const SignUp = () => {
         console.log('Confirm password: \n', formValues.passConfirm.toString());
         console.log('Password: \n', formValues.password.toString());
       }
-    } catch (error) {
+    } catch (err) {
+      const message = handleError(err);
+      setError(message!);
       console.log(error);
-      setError(error);
       setTimeout(() => {
         setError('');
       }, 5000);

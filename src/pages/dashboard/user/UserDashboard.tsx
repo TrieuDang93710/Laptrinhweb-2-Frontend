@@ -2,7 +2,7 @@ import { Link } from 'react-router';
 import useCombinedState from '../../../hooks/useCombinedState';
 import { BaseSyntheticEvent, useEffect, useState } from 'react';
 import CommonInput from '../../../components/atoms/Input';
-import { handleBlurChecking } from '../../../utils/helper';
+import { handleBlurChecking, handleError } from '../../../utils/helper';
 import { companies, roles } from '../../../faker/company';
 import UserInterface from '../../../interface/user/userResponse';
 import UserService from '../../../api/services/UserService';
@@ -37,14 +37,15 @@ const UserDashboard = () => {
         const emailRes: string | null = localStorage.getItem('email');
         const token: string | null = localStorage.getItem('token');
         const response = UserService.getUserByEmail(token!, emailRes!);
-        response.then((obj: any) => {
+        response.then((obj) => {
           console.log(obj.data);
           setUserInformation(obj.data);
           return obj.data;
         });
       }
     } catch (error) {
-      throw new Error(error);
+      const message = handleError(error)
+      throw new Error(message);
     }
   };
 

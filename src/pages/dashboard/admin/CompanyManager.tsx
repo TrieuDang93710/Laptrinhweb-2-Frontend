@@ -6,6 +6,7 @@ import UpdateCompany from '../../../components/UpdateCompnay';
 import CompanyInterface from '../../../interface/company/companyResponse';
 import CompanyService from '../../../api/services/CompanyService';
 import UserService from '../../../api/services/UserService';
+import { handleError } from '../../../utils/helper';
 
 const CompanyManager = () => {
   const [open, setOpen] = useState<boolean>(false);
@@ -36,7 +37,8 @@ const CompanyManager = () => {
         });
       }
     } catch (error) {
-      throw new Error(error);
+      const message = handleError(error)
+      throw new Error(message);
     }
   };
 
@@ -48,7 +50,8 @@ const CompanyManager = () => {
         navigate('/admin/company-manager')
       }
     } catch (error) {
-      throw new Error(error);
+      const message = handleError(error)
+      throw new Error(message);
     }
   };
 

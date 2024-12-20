@@ -4,6 +4,7 @@ import Decentralization from '../../../components/Decentralization';
 import UserInterface from '../../../interface/user/userResponse';
 import UserService from '../../../api/services/UserService';
 import { useNavigate } from 'react-router';
+import { handleError } from '../../../utils/helper';
 
 const UserManager = () => {
   const [openModal, setOpenModal] = useState<boolean>(false);
@@ -11,6 +12,8 @@ const UserManager = () => {
   const [userAllResponse, setAllUserResponse] = useState<UserInterface[]>();
   const [userAllFiltered, setUserAllFiltered] = useState<UserInterface[]>();
   const navigate = useNavigate();
+
+  console.log('userAllResponse: ', userAllResponse)
 
   const handleOpenModal = (userId: number) => {
     setOpenModal(!openModal);
@@ -45,7 +48,8 @@ const UserManager = () => {
         return response;
       }
     } catch (error) {
-      throw new Error(error);
+      const message = handleError(error)
+      throw new Error(message);
     }
   };
 

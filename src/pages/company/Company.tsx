@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import UserService from '../../api/services/UserService';
 import CompanyService from '../../api/services/CompanyService';
 import CompanyInterface from '../../interface/company/companyResponse';
+import { handleError } from '../../utils/helper';
 
 const CompanyPage = () => {
   const params = useParams<{ id: string }>();
@@ -17,14 +18,14 @@ const CompanyPage = () => {
   const fetchCompany = () => {
     try {
       if (UserService.isAuthenticated() && localStorage.getItem('token')) {
-        const token: string | null = localStorage.getItem('token');
-        const response = CompanyService.getAllCompanies(token!);
+        const response = CompanyService.getAllCompanies();
         response.then((obj) => {
           setCompanyResponse(obj);
         });
       }
     } catch (error) {
-      throw new Error(error);
+      const message = handleError(error);
+      throw new Error(message);
     }
   };
   return (

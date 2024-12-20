@@ -1,7 +1,7 @@
 import { BaseSyntheticEvent, useState } from 'react';
 import useCombinedState from '../../hooks/useCombinedState';
 import CommonInput from '../atoms/Input';
-import { handleBlurChecking } from '../../utils/helper';
+import { handleBlurChecking, handleError } from '../../utils/helper';
 import { useNavigate } from 'react-router';
 import UserService from '../../api/services/UserService';
 import CompanyService from '../../api/services/CompanyService';
@@ -31,8 +31,9 @@ const AddCompany = () => {
       }
       navigate('/admin/company-manager');
     } catch (err) {
+      const message = handleError(err);
+      setError(message!);
       console.log(error);
-      setError(err);
       setTimeout(() => {
         setError('');
       }, 5000);

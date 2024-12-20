@@ -6,3 +6,11 @@ export function handleBlurChecking(field: string, value: string, setValue: (fiel
     console.log('Input submitted:', value);
   }
 }
+
+export const handleError = (error: unknown) => {
+  const errorMessage = (error as { message?: string })?.message;
+  if (errorMessage) {
+    console.log(errorMessage);
+    return errorMessage;
+  }
+};

@@ -1,7 +1,7 @@
 import { BaseSyntheticEvent } from 'react';
 import useCombinedState from '../../hooks/useCombinedState';
 import CommonInput from '../atoms/Input';
-import { handleBlurChecking } from '../../utils/helper';
+import { handleBlurChecking, handleError } from '../../utils/helper';
 import UserService from '../../api/services/UserService';
 
 interface DecentralizationProps {
@@ -28,7 +28,8 @@ const Decentralization = ({ selectedUserId }: DecentralizationProps) => {
         return response;
       }
     } catch (error) {
-      throw new Error(error);
+      const message = handleError(error)
+      throw new Error(message);
     }
   };
   return (

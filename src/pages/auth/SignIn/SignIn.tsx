@@ -1,15 +1,15 @@
 import CommonInput from '../../../components/atoms/Input';
-import { handleBlurChecking } from '../../../utils/helper';
+import { handleBlurChecking, handleError } from '../../../utils/helper';
 import useCombinedState from '../../../hooks/useCombinedState';
 import { BaseSyntheticEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { CheckCircleFilled, CloseCircleFilled, FacebookOutlined, GooglePlusOutlined } from '@ant-design/icons';
+import { CheckCircleFilled, FacebookOutlined, GooglePlusOutlined } from '@ant-design/icons';
 import UserService from '../../../api/services/UserService';
 import Notification from '../../../components/Notification';
 
 const SignIn = () => {
   const [notification, setNotification] = useState<boolean>(false);
-  const [notificationError, setNotificationError] = useState<boolean>(false);
+  // const [notificationError, setNotificationError] = useState<boolean>(false);
   const [passHidden, setPassHidden] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const navigate = useNavigate();
@@ -45,8 +45,9 @@ const SignIn = () => {
         navigate('/auth/sign-in');
       }
     } catch (err) {
+      const message = handleError(err);
+      setError(message!);
       console.log(error);
-      setError(err);
       setTimeout(() => {
         setError('');
       }, 5000);
@@ -126,14 +127,14 @@ const SignIn = () => {
           notification={notification}
         />
       )}
-      {notificationError && (
+      {/* {notificationError && (
         <Notification
           icon={<CloseCircleFilled className='text-4xl text-red-600' />}
           message='Sign in fail!'
           description='Not completed!!!'
           notification={notification}
         />
-      )}
+      )} */}
     </div>
   );
 };
