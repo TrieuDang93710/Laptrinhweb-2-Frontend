@@ -4,7 +4,7 @@ import useCombinedState from '../../../hooks/useCombinedState';
 import { BaseSyntheticEvent, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { CheckCircleFilled, FacebookOutlined, GooglePlusOutlined } from '@ant-design/icons';
-import {  roles } from '../../../faker/company';
+import { roles } from '../../../faker/company';
 import UserService from '../../../api/services/UserService';
 import Notification from '../../../components/Notification';
 import CompanyInterface from '../../../interface/company/companyResponse';
@@ -170,11 +170,10 @@ const SignUp = () => {
             field='company'
             error={state.companyError}
             hidden={false}
-            optionCompany={companyResponse}
-            nameSelect='company'
             nameInput={'company'}
             label_title='Company'
             placeholder='Please, enter company'
+            labelTileClassName='text-white'
           />
           <CommonInput
             onblur={() => handleBlurChecking('roleError', state.role, setField)}
