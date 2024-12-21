@@ -6,6 +6,8 @@ import HomePage from './pages/home/HomePage';
 import { Link } from 'react-router';
 import './components/Header/index.css';
 import UserService from './api/services/UserService';
+import UserInterface from './interface/user/userResponse';
+import { handleError } from './utils/helper';
 
 const items = [
   {
@@ -52,9 +54,30 @@ const RootLayout = () => {
     if (location.pathname === '/') {
       navigate('/');
     }
+    fetchUserData();
   }, []);
 
   const [showNavModal, setShowNavModal] = useState<boolean>(false);
+  const [userInformation, setUserInformation] = useState<UserInterface>();
+  const fetchUserData = () => {
+    try {
+      if (UserService.isAuthenticated() && localStorage.getItem('token')) {
+        const emailRes: string | null = localStorage.getItem('email');
+        const token: string | null = localStorage.getItem('token');
+        const response = UserService.getUserByEmail(token!, emailRes!);
+        response.then((obj) => {
+          console.log(obj.data);
+          setUserInformation(obj.data);
+          return obj.data;
+        });
+      }
+    } catch (error) {
+      const message = handleError(error);
+      throw new Error(message);
+    }
+  };
+
+  console.log('userInformation: ', userInformation)
 
   // const role = 'admin';
   let layout;
@@ -65,9 +88,9 @@ const RootLayout = () => {
         <div className='w-full flex justify-between items-start'>
           <div className='w-1/4 min-h-screen flex flex-col justify-start items-center bg-slate-50 shadow-md shadow-slate-700 gap-4 px-4'>
             <div className={'relative pt-28 w-full flex flex-col justify-center items-center gap-1 cursor-pointer'}>
-              <p className='text-[16px] text-slate-900 font-bold'>Trieu Dang</p>
+              <p className='text-[16px] text-slate-900 font-bold'>{userInformation?.firstName} {userInformation?.lastName}</p>
               <span className='text-xs text-slate-800 font-medium'>
-                <Link to={'/user-profile'}>dangbinhtrieu123@gmail.com</Link>
+                <Link to={'/user-profile'}>{userInformation?.email}</Link>
               </span>
             </div>
             <ul className='flex w-full md:flex-col justify-start items-start gap-4 py-4'>{menuItem}</ul>
